@@ -8,11 +8,15 @@ from entity import Policy, PolicyIn
 import json
 import ast
 
-from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseSettings
 
+class Settings(BaseSettings):
+    is_dev = True
+    database_url = 'postgresql+psycopg2://postgres:1234@127.0.0.1/postgres'
 
-DATABASE_URL = "postgresql+psycopg2://postgres:1234@127.0.0.1/postgres"
-database = databases.Database(DATABASE_URL)
+settings = Settings()
+
+database = databases.Database(settings.database_url)
 metadata = sqlalchemy.MetaData()
 policies = sqlalchemy.Table(
     "casbin_rule",
@@ -26,23 +30,21 @@ policies = sqlalchemy.Table(
     sqlalchemy.Column("v4", sqlalchemy.String),
     sqlalchemy.Column("v5", sqlalchemy.String),
 )
-engine = sqlalchemy.create_engine(DATABASE_URL)
+engine = sqlalchemy.create_engine(settings.database_url)
 metadata.create_all(engine)
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"]
-)
+if settings.is_dev:
+    from fastapi.middleware.cors import CORSMiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["*"]
+    )
 
 @app.on_event("startup")
 async def startup():
@@ -55,7 +57,6 @@ async def shutdown():
 
 
 # API
-
 @app.get("/policies/", response_model=List[Policy])
 async def get_list_policies(sort, range, filter, response: Response):
     sort = ast.literal_eval(sort)
