@@ -45,6 +45,10 @@ if settings.is_dev:
         allow_headers=["*"],
         expose_headers=["*"]
     )
+else:
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/static", StaticFiles(directory="static", html=True), name='static')
+
 
 @app.on_event("startup")
 async def startup():
