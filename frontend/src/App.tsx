@@ -5,9 +5,6 @@ import { Dashboard } from './dashboard';
 
 import PolicyIcon from '@mui/icons-material/Policy';
 
-// TODO
-// 打包设置 build dir 和 app context
-
 const App = () => (
   <Admin dataProvider={simpleRestProvider(import.meta.env.VITE_URL)} dashboard={Dashboard}>
     <Resource name="policies" list={PolicyList} edit={PolicyEdit} create={PolicyCreate} icon={PolicyIcon}/>
