@@ -22,3 +22,19 @@ class Policy(BaseModel):
     v4: Optional[str]
     v5: Optional[str]
 
+class User(BaseModel):
+    id: int
+    user_name: str
+    password: str
+
+class UserIn(BaseModel):
+    user_name: Optional[str]
+    password: Optional[str]
+
+class Role(BaseModel):
+    id: int
+    role_name: str
+
+class RoleIn(BaseModel):
+    role_name: Optional[str]
+
