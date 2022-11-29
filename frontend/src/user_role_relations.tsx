@@ -15,8 +15,8 @@ export const UserRoleRelationEdit = () => (
     <Edit>
         <SimpleForm>
         <TextInput source="id" disabled />
-        <TextField source="user_id" />
-        <TextField source="role_id" />
+        <TextInput source="user_id" />
+        <TextInput source="role_id" />
         </SimpleForm>
     </Edit>
 );
@@ -25,8 +25,8 @@ export const UserRoleRelationCreate = () => (
     <Create>
         <SimpleForm>
         <TextInput source="id" disabled />
-        <TextField source="user_id" />
-        <TextField source="role_id" />
+        <TextInput source="user_id" />
+        <TextInput source="role_id" />
         </SimpleForm>
     </Create>
 );
