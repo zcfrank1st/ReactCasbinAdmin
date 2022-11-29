@@ -1,11 +1,15 @@
-import { List, Datagrid, TextField, EditButton, Edit, Create,SimpleForm, TextInput} from "react-admin";
+import { List, Datagrid, TextField, ReferenceField, EditButton, Edit, Create,SimpleForm, TextInput, ReferenceInput, SelectInput} from "react-admin";
 
 export const UserRoleRelationList = () => (
   <List>
     <Datagrid rowClick="edit">
       <TextField source="id" />
-      <TextField source="user_id" />
-      <TextField source="role_id" />
+      <ReferenceField source="user_id" reference="users">
+        <TextField source="user_name" />
+      </ReferenceField>
+      <ReferenceField source="role_id" reference="roles">
+        <TextField source="role_name" />
+      </ReferenceField>
       <EditButton />
     </Datagrid>
   </List>
@@ -15,8 +19,12 @@ export const UserRoleRelationEdit = () => (
     <Edit>
         <SimpleForm>
         <TextInput source="id" disabled />
-        <TextInput source="user_id" />
-        <TextInput source="role_id" />
+        <ReferenceInput source="user_id" reference="users">
+          <SelectInput optionText="user_name" />
+        </ReferenceInput>
+        <ReferenceInput source="role_id" reference="roles">
+        <SelectInput optionText="role_name" />
+        </ReferenceInput>
         </SimpleForm>
     </Edit>
 );
@@ -25,8 +33,12 @@ export const UserRoleRelationCreate = () => (
     <Create>
         <SimpleForm>
         <TextInput source="id" disabled />
-        <TextInput source="user_id" />
-        <TextInput source="role_id" />
+        <ReferenceInput source="user_id" reference="users">
+          <SelectInput optionText="user_name" />
+        </ReferenceInput>
+        <ReferenceInput source="role_id" reference="roles">
+        <SelectInput optionText="role_name" />
+        </ReferenceInput>
         </SimpleForm>
     </Create>
 );

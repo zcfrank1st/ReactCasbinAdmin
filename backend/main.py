@@ -1,9 +1,9 @@
-from typing import List
+from typing import List, Union
 
 import databases
 import sqlalchemy
 from sqlalchemy import desc, func, select
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, Depends
 from entity import Policy, PolicyIn, User, UserIn, Role, RoleIn, UserRoleRelation, UserRoleRelationIn
 import json
 import ast
@@ -83,10 +83,14 @@ async def shutdown():
 # Policies API
 # =====================
 @app.get("/policies/", response_model=List[Policy])
-async def get_list_policies(sort, range, filter, response: Response):
+async def get_list_policies(response: Response, filter, sort = '[]', range = '[]'):
     sort = ast.literal_eval(sort)
     range = ast.literal_eval(range)
     filter = json.loads(filter)
+
+    if not range and not sort:
+        query = policies.select().where(policies.c.id.in_(filter['id'])).order_by(policies.c.id.asc())
+        return await database.fetch_all(query)
 
     count_query = select([func.count()]).select_from(policies)
     count = await database.execute(count_query)
@@ -111,12 +115,6 @@ async def get_one_policy(policy_id:int):
     query = policies.select().where(policies.c.id == policy_id)
     return await database.fetch_one(query)
 
-@app.get("/policies/", response_model=List[Policy])
-async def get_many_policies(filter):
-    filter_request = json.loads(filter)
-    query = policies.select().where(policies.c.id.in_(filter_request['ids'])).order_by(policies.c.id.asc())
-    return await database.fetch_all(query)
-
 @app.post("/policies/")
 async def create_one_policy(policy_in: PolicyIn):
     create = policies.insert().values(\
@@ -138,12 +136,12 @@ async def update_one_policy(policy_id: int, policy_in: PolicyIn):
     query = policies.select().where(policies.c.id == policy_id)
     return await database.fetch_one(query)
 
-@app.put("/policies/")
-async def update_many_policies(filter, policy_in: PolicyIn):
-    filter_request = json.loads(filter)
-    update = policies.update().where(policies.c.id.in_(filter_request['ids'])).values(**policy_in.dict())
-    await database.execute(update)
-    return filter_request['ids']
+# @app.put("/policies/")
+# async def update_many_policies(filter, policy_in: PolicyIn):
+#     filter_request = json.loads(filter)
+#     update = policies.update().where(policies.c.id.in_(filter_request['ids'])).values(**policy_in.dict())
+#     await database.execute(update)
+#     return filter_request['ids']
 
 @app.delete("/policies/{policy_id}")
 async def delete_one_policy(policy_id: int):
@@ -163,10 +161,14 @@ async def delete_many_policies(filter):
 # Users API
 # =====================
 @app.get("/users/", response_model=List[User])
-async def get_list_users(sort, range, filter, response: Response):
+async def get_list_users(response: Response, filter, sort = '[]', range = '[]'):
     sort = ast.literal_eval(sort)
     range = ast.literal_eval(range)
     filter = json.loads(filter)
+
+    if not range and not sort:
+        query = users.select().where(users.c.id.in_(filter['id'])).order_by(users.c.id.asc())
+        return await database.fetch_all(query)
 
     count_query = select([func.count()]).select_from(users)
     count = await database.execute(count_query)
@@ -191,12 +193,6 @@ async def get_one_user(user_id:int):
     query = users.select().where(users.c.id == user_id)
     return await database.fetch_one(query)
 
-@app.get("/users/", response_model=List[User])
-async def get_many_users(filter):
-    filter_request = json.loads(filter)
-    query = users.select().where(users.c.id.in_(filter_request['ids'])).order_by(users.c.id.asc())
-    return await database.fetch_all(query)
-
 @app.post("/users/")
 async def create_one_user(user_in: UserIn):
     create = users.insert().values(\
@@ -213,12 +209,12 @@ async def update_one_user(user_id: int, user_in: UserIn):
     query = users.select().where(users.c.id == user_id)
     return await database.fetch_one(query)
 
-@app.put("/users/")
-async def update_many_users(filter, user_in: UserIn):
-    filter_request = json.loads(filter)
-    update = users.update().where(users.c.id.in_(filter_request['ids'])).values(**user_in.dict())
-    await database.execute(update)
-    return filter_request['ids']
+# @app.put("/users/")
+# async def update_many_users(filter, user_in: UserIn):
+#     filter_request = json.loads(filter)
+#     update = users.update().where(users.c.id.in_(filter_request['ids'])).values(**user_in.dict())
+#     await database.execute(update)
+#     return filter_request['ids']
 
 @app.delete("/users/{user_id}")
 async def delete_one_user(user_id: int):
@@ -239,10 +235,14 @@ async def delete_many_users(filter):
 # Roles API
 # =====================
 @app.get("/roles/", response_model=List[Role])
-async def get_list_roles(sort, range, filter, response: Response):
+async def get_list_roles(response: Response, filter, sort = '[]', range = '[]'):
     sort = ast.literal_eval(sort)
     range = ast.literal_eval(range)
     filter = json.loads(filter)
+
+    if not range and not sort:
+        query = roles.select().where(roles.c.id.in_(filter['id'])).order_by(roles.c.id.asc())
+        return await database.fetch_all(query)
 
     count_query = select([func.count()]).select_from(roles)
     count = await database.execute(count_query)
@@ -267,12 +267,6 @@ async def get_one_role(role_id:int):
     query = roles.select().where(roles.c.id == role_id)
     return await database.fetch_one(query)
 
-@app.get("/roles/", response_model=List[Role])
-async def get_many_roles(filter):
-    filter_request = json.loads(filter)
-    query = roles.select().where(roles.c.id.in_(filter_request['ids'])).order_by(roles.c.id.asc())
-    return await database.fetch_all(query)
-
 @app.post("/roles/")
 async def create_one_role(role_in: RoleIn):
     create = roles.insert().values(\
@@ -288,12 +282,12 @@ async def update_one_role(role_id: int, role_in: RoleIn):
     query = roles.select().where(roles.c.id == role_id)
     return await database.fetch_one(query)
 
-@app.put("/roles/")
-async def update_many_roles(filter, role_in: RoleIn):
-    filter_request = json.loads(filter)
-    update = roles.update().where(roles.c.id.in_(filter_request['ids'])).values(**role_in.dict())
-    await database.execute(update)
-    return filter_request['ids']
+# @app.put("/roles/")
+# async def update_many_roles(filter, role_in: RoleIn):
+#     filter_request = json.loads(filter)
+#     update = roles.update().where(roles.c.id.in_(filter_request['ids'])).values(**role_in.dict())
+#     await database.execute(update)
+#     return filter_request['ids']
 
 @app.delete("/roles/{role_id}")
 async def delete_one_role(role_id: int):
@@ -341,12 +335,6 @@ async def get_one_relation(relation_id:int):
     query = user_role_relations.select().where(user_role_relations.c.id == relation_id)
     return await database.fetch_one(query)
 
-@app.get("/user_role_relations/", response_model=List[UserRoleRelation])
-async def get_many_relations(filter):
-    filter_request = json.loads(filter)
-    query = user_role_relations.select().where(user_role_relations.c.id.in_(filter_request['ids'])).order_by(user_role_relations.c.id.asc())
-    return await database.fetch_all(query)
-
 @app.post("/user_role_relations/")
 async def create_one_relation(relation_in: UserRoleRelationIn):
     create = user_role_relations.insert().values(\
@@ -363,12 +351,12 @@ async def update_one_relation(relation_id: int, relation_in: UserRoleRelationIn)
     query = user_role_relations.select().where(user_role_relations.c.id == relation_id)
     return await database.fetch_one(query)
 
-@app.put("/user_role_relations/")
-async def update_many_relations(filter, relation_in: UserRoleRelationIn):
-    filter_request = json.loads(filter)
-    update = user_role_relations.update().where(user_role_relations.c.id.in_(filter_request['ids'])).values(**relation_in.dict())
-    await database.execute(update)
-    return filter_request['ids']
+# @app.put("/user_role_relations/")
+# async def update_many_relations(filter, relation_in: UserRoleRelationIn):
+#     filter_request = json.loads(filter)
+#     update = user_role_relations.update().where(user_role_relations.c.id.in_(filter_request['ids'])).values(**relation_in.dict())
+#     await database.execute(update)
+#     return filter_request['ids']
 
 @app.delete("/user_role_relations/{relation_id}")
 async def delete_one_relation(relation_id: int):
