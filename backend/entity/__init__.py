@@ -38,3 +38,11 @@ class Role(BaseModel):
 class RoleIn(BaseModel):
     role_name: Optional[str]
 
+class UserRoleRelation(BaseModel):
+    id: int
+    user_id: int
+    role_id: int
+
+class UserRoleRelationIn(BaseModel):
+    user_id: Optional[int]
+    role_id: Optional[int]

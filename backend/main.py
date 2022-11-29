@@ -4,7 +4,7 @@ import databases
 import sqlalchemy
 from sqlalchemy import desc, func, select
 from fastapi import FastAPI, Response
-from entity import Policy, PolicyIn, User, UserIn, Role, RoleIn
+from entity import Policy, PolicyIn, User, UserIn, Role, RoleIn, UserRoleRelation, UserRoleRelationIn
 import json
 import ast
 
@@ -46,6 +46,7 @@ roles = sqlalchemy.Table(
 user_role_relations = sqlalchemy.Table(
     "user_role_relation",
     metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("user_id", sqlalchemy.Integer),
     sqlalchemy.Column("role_id", sqlalchemy.Integer),
 )
@@ -306,5 +307,80 @@ async def delete_one_role(role_id: int):
 async def delete_many_roles(filter):
     filter_request = json.loads(filter)
     delete = roles.delete().where(roles.c.id.in_(filter_request['ids']))
+    await database.execute(delete)
+    return filter_request['ids']
+
+# UserRoleRelations API
+# =====================
+@app.get("/user_role_relations/", response_model=List[UserRoleRelation])
+async def get_list_relations(sort, range, filter, response: Response):
+    sort = ast.literal_eval(sort)
+    range = ast.literal_eval(range)
+    filter = json.loads(filter)
+
+    count_query = select([func.count()]).select_from(user_role_relations)
+    count = await database.execute(count_query)
+    
+    response.headers["Content-Range"] = "user_role_relations {0}-{1}/{2}".format(range[0], range[1], count)
+
+    if not filter:
+        if sort[0] == 'DESC':
+            query = user_role_relations.select().order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
+        else:
+            query = user_role_relations.select().order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
+    else:
+        if sort[0] == 'DESC':
+            query = user_role_relations.select().filter_by(**filter).order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
+        else:
+            query = user_role_relations.select().filter_by(**filter).order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
+    return await database.fetch_all(query)
+
+
+@app.get("/user_role_relations/{relation_id}", response_model=UserRoleRelation)
+async def get_one_relation(relation_id:int):
+    query = user_role_relations.select().where(user_role_relations.c.id == relation_id)
+    return await database.fetch_one(query)
+
+@app.get("/user_role_relations/", response_model=List[UserRoleRelation])
+async def get_many_relations(filter):
+    filter_request = json.loads(filter)
+    query = user_role_relations.select().where(user_role_relations.c.id.in_(filter_request['ids'])).order_by(user_role_relations.c.id.asc())
+    return await database.fetch_all(query)
+
+@app.post("/user_role_relations/")
+async def create_one_relation(relation_in: UserRoleRelationIn):
+    create = user_role_relations.insert().values(\
+        user_id = relation_in.user_id, \
+        role_id = relation_in.role_id,
+    )
+    last_record_id = await database.execute(create)
+    return {**relation_in.dict(), "id": last_record_id}
+
+@app.put("/user_role_relations/{relation_id}")
+async def update_one_relation(relation_id: int, relation_in: UserRoleRelationIn):
+    update = user_role_relations.update().where(user_role_relations.c.id == relation_id).values(**relation_in.dict())
+    await database.execute(update)
+    query = user_role_relations.select().where(user_role_relations.c.id == relation_id)
+    return await database.fetch_one(query)
+
+@app.put("/user_role_relations/")
+async def update_many_relations(filter, relation_in: UserRoleRelationIn):
+    filter_request = json.loads(filter)
+    update = user_role_relations.update().where(user_role_relations.c.id.in_(filter_request['ids'])).values(**relation_in.dict())
+    await database.execute(update)
+    return filter_request['ids']
+
+@app.delete("/user_role_relations/{relation_id}")
+async def delete_one_relation(relation_id: int):
+    query = user_role_relations.select().where(user_role_relations.c.id == relation_id)
+    target = await database.fetch_one(query)
+    delete = user_role_relations.delete().where(user_role_relations.c.id == relation_id)
+    await database.execute(delete)
+    return target
+
+@app.delete("/user_role_relations/")
+async def delete_many_roles(filter):
+    filter_request = json.loads(filter)
+    delete = user_role_relations.delete().where(user_role_relations.c.id.in_(filter_request['ids']))
     await database.execute(delete)
     return filter_request['ids']
