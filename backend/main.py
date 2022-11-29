@@ -98,12 +98,12 @@ async def get_list_policies(response: Response, filter, sort = '[]', range = '[]
     response.headers["Content-Range"] = "policies {0}-{1}/{2}".format(range[0], range[1], count)
 
     if not filter:
-        if sort[0] == 'DESC':
+        if sort[1] == 'DESC':
             query = policies.select().order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
         else:
             query = policies.select().order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
     else:
-        if sort[0] == 'DESC':
+        if sort[1] == 'DESC':
             query = policies.select().filter_by(**filter).order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
         else:
             query = policies.select().filter_by(**filter).order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
@@ -175,13 +175,17 @@ async def get_list_users(response: Response, filter, sort = '[]', range = '[]'):
     
     response.headers["Content-Range"] = "users {0}-{1}/{2}".format(range[0], range[1], count)
 
+    print(sort)
+
     if not filter:
-        if sort[0] == 'DESC':
+        if sort[1] == 'DESC':
+            print('desc')
             query = users.select().order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
         else:
+            print('asc')
             query = users.select().order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
     else:
-        if sort[0] == 'DESC':
+        if sort[1] == 'DESC':
             query = users.select().filter_by(**filter).order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
         else:
             query = users.select().filter_by(**filter).order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
@@ -250,12 +254,12 @@ async def get_list_roles(response: Response, filter, sort = '[]', range = '[]'):
     response.headers["Content-Range"] = "roles {0}-{1}/{2}".format(range[0], range[1], count)
 
     if not filter:
-        if sort[0] == 'DESC':
+        if sort[1] == 'DESC':
             query = roles.select().order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
         else:
             query = roles.select().order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
     else:
-        if sort[0] == 'DESC':
+        if sort[1] == 'DESC':
             query = roles.select().filter_by(**filter).order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
         else:
             query = roles.select().filter_by(**filter).order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
@@ -318,12 +322,12 @@ async def get_list_relations(sort, range, filter, response: Response):
     response.headers["Content-Range"] = "user_role_relations {0}-{1}/{2}".format(range[0], range[1], count)
 
     if not filter:
-        if sort[0] == 'DESC':
+        if sort[1] == 'DESC':
             query = user_role_relations.select().order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
         else:
             query = user_role_relations.select().order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
     else:
-        if sort[0] == 'DESC':
+        if sort[1] == 'DESC':
             query = user_role_relations.select().filter_by(**filter).order_by(desc(sort[0])).offset(range[0]).fetch(range[1]-range[0]+1)
         else:
             query = user_role_relations.select().filter_by(**filter).order_by(sort[0]).offset(range[0]).fetch(range[1]-range[0]+1)
